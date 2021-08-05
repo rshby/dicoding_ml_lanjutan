@@ -1,0 +1,45 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set(context="talk")
+
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from skelarn.preprocessing import MinMaxScaller, OneHotEncoder
+from keras.models import Sequential
+from keras.layers import Dense, Conv2D, MaxPool2D, Dropout, Flatten
+
+mnist = tf.keras.datasets.mnist
+(X_train, y_train), (X_test, y_test)  = mnist.load_data()
+
+np.set_printoptions(linewidth=200)
+plt.imshow(X_train[0])
+print(y_train[0])
+
+X_train = X_train/255.0
+X_test = X_test/255.0
+
+//arsitektur model
+model = Sequential([
+	Flatten(input_shape(28, 28)),
+	Dense(128, activation=tf.nn.relu),
+	Dense(10, activation=tf.nn.softmax)
+])
+
+//compiler atau criterion
+model.compile(optimizer=tf.optimizer.Adam(),
+	      loss = "sparse, categorical_crossentropy",
+	      metrics=["accuracy"])
+
+//buat Callback
+class myCallback(Callback):
+  def on_epoch_end(self, epoch, logs={}):
+    if(logs.get("accuracy") > 0.98):
+      print("\nAkurasi sudah diatas 98%")
+      self.model.stop_training = True
+
+callbacks = myCallback()
+
+//training
+model.fit(X_train, y_train, epochs=100, callbacks=[callbacks])

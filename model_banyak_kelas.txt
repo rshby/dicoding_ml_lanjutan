@@ -1,0 +1,90 @@
+== Model Klasifikasi Banyak kelas ==
+
+import pandas as pd
+
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Dense
+
+df = (pd.read_csv("data/iris.csv").drop("Id", axis="columns"))
+df.head()
+
+category = pd.get_dummies(df["Species"])
+category
+
+new_df = pd.concat([df, category], axis="columns")
+new_df.drop("Species", axis="columns", inplace=True)
+new_df.head()
+
+dataset = new_df.values
+dataset
+
+X = dataset[:, 0:4]
+y = datset[:, 4:7]
+
+//preprocessing
+min_max_scaler = preprocessing.MinMaxScaler()
+X_scale = min_max_scaler.fit_transform(X)
+X_scale
+
+//dataset splitting
+X_train, X_test, y_train, y_test = train_test_split(X_scale, y, test_size=0.3, stratify=y, random_state=42)
+
+//pembuatan model
+model = Sequential([
+	Dense(64, activation="relu", input_shape=(4,)),
+	Dense(64, activation="relu"),
+	Dense(3, activation="softmax")
+])
+
+//criterion atau compile
+model.compile(optimizer="Adam", loss="categorical_crossentropy", metrics=["accuracy"])
+
+//model
+hist = model.fit(X_train, y_train, epochs=100)
+
+//evaluasi
+model.evaluate(X_test, y_test)
+
+//plotting grafik loss dan accuracy
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(6, 4), constrained_layout=True)
+fig.suptitle("Grafik Loss")
+_ = hist.history["loss"].plot()
+_ = ax.set_xlabel("Epoch")
+_ = ax.set_ylabel("Loss")
+plt.show()
+
+fig,ax = plt.subplots(figsize=(6, 4), constrained_layout=True)
+fig.suptitle("Grafik Akurasi")
+_ = hist.history["accuracy"].plot()
+_ = ax.set_xlabel("Epochs")
+_ = ax.set_ylabel("Akurasi")
+plt.show()
+
+== Cara Mencegah Overfitting ==
+//dengan dropout
+
+model = tf.keras.models.Sequantial([
+	Conv2D(64, (3, 3), activation="relu", input_shape=(150, 150, 3)),
+	MaxPooling2D(2, 2),
+	Flatten(),
+	Dense(512, activation="relu"),
+	Dropout(0.2),
+	Dense(256, activation="relu"),
+	Dropout(0.5),
+	Dense(6, activation="softmax")
+])
+
+== Callbacks ==
+class myCallback(tf.keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs={}):
+    if(logs.get("accuracy")>0.9):
+      print("\nAkurasi sudah mencapai >90%")
+      self.model.stop_training = True
+
+callabcks = myCallback()
+
+model.fit(X_train, y_train, epochs=100, callbacks=[callbacks])
