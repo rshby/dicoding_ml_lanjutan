@@ -1,0 +1,27 @@
+== Penggunaan Batch Loading ==
+
+import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense, Conv2D, MaxPool, Dropout, Flatten
+from tf.callback import Callback
+
+mnist = tf.keras.datasets.mnist
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+X_train = X_train/255.0
+X_test = X_test/255.0
+
+// arsitektur model
+model = Sequentials([
+	Flatten(input_shape=(28, 28)),
+	Dense(128, activation=tf.nn.relu),
+	Dense(10, activation=tf.nn.softmax)	
+])
+
+//compile atau criterion
+model.compile(optimizer=tf.optimizers.Adam(), loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+
+//training
+model.fit(X_train, y_train, batch_size=32, epochs=10)
+
+//training
+model.fit(X_train, y_train, batch_size=128, epochs=10)

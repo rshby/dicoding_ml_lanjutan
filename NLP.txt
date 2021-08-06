@@ -1,0 +1,50 @@
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+tokenizer = Tokenizer(num_words= 15, oov_token='-')
+
+teks = ['Saya suka programming',
+        'Programming sangat menyenangkan!',
+        'Machine Learning berbeda dengan pemrograman konvensional']
+
+tokenizer.fit_on_texts(teks)
+
+sequences = tokenizer.texts_to_sequences(teks)
+
+print(tokenizer.word_index)
+
+//padding text
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+sequences_samapanjang = pad_sequences(sequences)
+
+//jika ingin mengganti padding
+//maxlen : panjang text maksimal
+sequences_samapanjang = pad_sequences(sequences, 
+                                      padding='post',
+                                      maxlen=5)
+
+//Supaya jika kata lebih panjang, yg diambil 5 kata terakhir
+sequences_samapanjang = pad_sequences(sequences, 
+                                      padding='post',
+                                      maxlen=5,
+                                      truncating='post')
+
+//Embedding
+model = tf.keras.Sequential([
+    tf.keras.layers.Embedding(jumlah_kata, dimensi_embedding, panjang_input),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(24, activation='relu'),
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
+
+//Compile
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+//Training
+model.fit(padded_latih, label_latih, 
+          epochs=num_epochs, 
+          validation_data=(padded_test, label_test))
+
+
+

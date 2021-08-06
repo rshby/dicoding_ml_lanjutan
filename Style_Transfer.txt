@@ -1,0 +1,29 @@
+import tensorflow as tf
+def tensor_to_image(tensor):
+  tensor = tensor*255
+  tensor = np.array(tensor, dtype=np.uint8)
+  if np.ndim(tensor)>3:
+    assert tensor.shape[0] == 1
+    tensor = tensor[0]
+  return PIL.Image.fromarray(tensor)
+
+def image_to_tensor(path_to_img):
+    img = tf.io.read_file(path_to_img)
+    img = tf.image.decode_image(img, channels=3, dtype=tf.float32)
+    
+    # Resize the image to specific dimensions
+    img = tf.image.resize(img, [512, 512])
+    img = img[tf.newaxis, :]
+    return img
+
+kucing_tensor = image_to_tensor('/content/kucing.jpg')
+style_tensor = image_to_tensor('/content/style.jpg')
+
+import tensorflow_hub as hub
+import numpy as np
+import PIL.Image
+import time
+import functools
+hub_module = hub.load('https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/1')
+stylized_image = hub_module(tf.constant(kucing_tensor), tf.constant(style_tensor))[0]
+tensor_to_image(stylized_image)

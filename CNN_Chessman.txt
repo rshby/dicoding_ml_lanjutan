@@ -1,0 +1,106 @@
+== CNN Chessman ==
+import os
+import zipfile
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import seaborn as sns
+sns.set(context="talk")
+
+import tensorflow as tf
+from keras.preprocessing import image
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from keras.models import Sequential
+from keras.layers import Flatten, Conv2D, Dense, MaxPooling2D, Dropout
+from tensorflow import nn, optimizers
+
+// Import Data
+local_zip = "/tmp/Chessman-image-dataset.zip"
+zip_ref = zipfile.ZilFile(local_zip, "r")
+zip_ref.extractall("/tmp")
+zip_ref.close()
+
+os.listdir("/tmp/Chessman-image-dataset/Chess")
+
+print("total pawn :", len(os.listdir("/tmp/Chessman-image-dataset/Chessman/Pawn")))
+print("total king :", len(os.listdir("/tmp/Chessman-image-dataset/Chessman/Pawn")))
+print("total knight :", len(os.listdir("/tmp/Chessman-image-dataset/Chessman/Knight")))
+
+//Tampilkan Gambar
+img = image.load_img("/tmp/Chessman-image-dataset/Chess/King/00000145.png")
+_ = plt.imshow(img)
+
+//Buat Data Generator
+train_dir = os.path.join("/tmp/Chessman-image-dataset/Chess")
+train_datagen = ImageDataGenerator(
+	rescale = 1./255,
+	rotation_range = 20,
+	zoom_range = 0.2,
+	shear_range = 0.2
+	fill_mode = "nearest",
+	validation_split = 0.1
+)
+
+//Buat Data Training
+train_generator = train_datagen.flow_from_directory(
+	train_dir,
+	target_size = (150, 150),
+	batch_size = 16,
+	class_mode = "categorical",
+	subset = "training"
+)
+
+//Buat Data Testing
+validation_generator = train_datagen.flow_from_directory(
+	train_dir,
+	target_size = (150, 150),
+	batch_size = 16,
+	class_mode = "categorical",
+	subset = "validation"	
+)
+
+//Arsitektur Model
+model = Sequential([
+	Conv2D(64, (3, 3), activation="relu", input_shape=(150, 150, 3)),
+	MaxPooling2D(2, 2),
+	Conv2D(32, (3, 3), activation="relu"),
+	MaxPooling(2, 2),
+	Dropout(0.4),
+	Conv2D(64, (3, 3), activation="relu"),
+	MaxPooling2D(2, 2),
+	Dropout(0.4),
+	Flatten(),
+	Dense(512, activation="relu"),
+	Dense(256, activation="relu"),
+	Dense(6, activation="softmax")
+])
+
+//Compile
+model.compile(optimizer=optimizers.Adam(), 
+	loss = "categorical_crossentropy",
+	matrics = ["accuracy"])
+
+//Training
+hist = model.fit(train_generator, 
+	validation_data = validation_generator,
+	epochs=50,
+	verbose=1,
+	workers=4)
+
+//Plotting history
+fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
+fig.suptitle("Grafik Akurasi")
+_ = plt.plot(hist.history["accuracy"], label="train")
+_ = plt.plot(hist.history["val_accuracy"], label="test")
+_ = ax.set_xlabel("Epochs")
+_ = ax.set_ylabel("Akurasi")
+_ = ax.legend()
+plt.show()
+
+fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
+fig.suptitle("Grafik Loss Model")
+_ = plt.plot(hist.history["loss"], label="test")
+_ = plt.plot(hist.history["vall_loss"], label="train")
+_ = ax.set_xlabel("Epochs")
+_ = ax.set_ylabel("Loss")
+_ = ax.legend()
+plt.show()
