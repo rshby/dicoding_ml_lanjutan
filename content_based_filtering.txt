@@ -1,0 +1,73 @@
+== Content Based Filtering ==
+
+import pandas as pd
+
+from sklearn.metrics.pairwise import cosine_distance
+from sklearn.feature_extraction.text import CountVectorizer
+from nltk.tokenize import word_tokenize
+
+//import dataset
+df = (pd.read_csv("dataset/Movie_sinpsis.csv").loc[:, ["title", "description"]])
+df.head()
+
+//encode all description menjadi bank
+bow = CountVectorizer(stop_words="english", tokenizer=word_tokenize)
+bank = bow.fit_transform(df["description"])
+
+//step 1: Encode what user watch
+idx = 0
+
+content = df.loc[idx, "description"]
+content
+
+code = bow.transform([content])
+code
+
+//step 2: Mencari simillarity
+dist = cosine_dist(code, bank)
+dist
+
+//urutkan index yang paling mirip
+rec_idx = dist.argsort()[0, 1:11]
+rec_idx
+
+//step3 : recommend
+df.loc[rec_idx]
+
+=== ML Engineering ==
+class RecommenderSystem:
+   def __init__(self, data, kolom):
+	self.df = read_csv(data)	
+	self.kolom = kolom
+	self.encode = None
+	self.bank = None
+
+   def fit(self):
+	self.encoder = CountVectorizer(stop_words="english", tokenizer=word_tokenize)
+	self.bank = self.encoder.fit_transform(self.df[self.kolom])	
+
+   def recommend(self, idx, top_k=10):
+	content = self.df.loc[idx, self.kolom]
+	code = self.encoder.transform([content])
+	dist = cosine_distance(code, self.bank)
+	rec_idx = dist.argsort()[0, 1:(top_k)+1]
+	return self.df.loc[rec_idx]
+
+recsys = RecommenderSystem("data/description.csv", kolom="description")
+recsys.fit()
+
+recsys.reccomender(1)
+
+recsys.reccomender(579)
+
+=== Multiple Information / Metadata Soup ==
+//bikin kolom yang berisi concat beberapa informasi kolom
+
+recsys = recommenderSystem("data/description.csv", kolom="combined")
+recsys.fit()
+
+recsys.recommender(0)
+
+recsys.recommender()
+
+
