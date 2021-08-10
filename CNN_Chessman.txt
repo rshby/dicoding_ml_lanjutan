@@ -29,6 +29,18 @@ print("total knight :", len(os.listdir("/tmp/Chessman-image-dataset/Chessman/Kni
 img = image.load_img("/tmp/Chessman-image-dataset/Chess/King/00000145.png")
 _ = plt.imshow(img)
 
+//
+class_name = ["pawn", "king", "knight"]
+plt.figure(figsize=(10, 10)):
+for i in range(25):
+  plt.subplots(5, 5, i+1)
+  plt.xticks([])
+  plt.yticks([])
+  plt.grid(False)
+  plt.imshow(train_images[i], cmap=plt.cm.binary)
+plt.show()
+
+
 //Buat Data Generator
 train_dir = os.path.join("/tmp/Chessman-image-dataset/Chess")
 train_datagen = ImageDataGenerator(

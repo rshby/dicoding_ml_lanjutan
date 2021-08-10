@@ -1,0 +1,59 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
+
+from sklearn.model_selection import train_test_split
+
+import tensorflow as tf
+from tensorflow import nn, optimizers
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from keras.models import Sequential
+from keras.layers import Dense, Flatten, LSTM, Embedding
+
+//import dataset
+df = (pd.read_csv("imdb_indonesia.csv").drop("judul_film", axis="columns"))
+
+//one hot encoding
+category = pd.get_dummies(df["genre"])
+
+//concat df_baru
+df_baru = pd.concat([df, category], axis="columns")
+df_baru.drop("genre", axis="columns", inplace=True)
+df_baru.head()
+
+//dataset splitting
+X = df_baru["ringkasan_sinopsis"].values
+y = df_baru[["Drama", "Horor", "Komedi", "Laga", "Romantis"]].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+
+//tokenisasi
+tokenizer = Tokenizer(num_words=5000, oov_token="x")
+
+tokenizer.fit_on_texts(X_train)
+tokenizer.fit_on_texts(X_test)
+
+//proses sequence
+sequence_train = tokenizer.texts_to_sequences(X_train)
+sequence_test = tokenizer.texts_to_sequences(X_test)
+
+//padding
+padded_train = pad_sequences(sequences_train)
+padded_test = pad_sequences(sequences_test)
+
+//Arsitektur Model
+model = Sequential([
+	Embedding(input_dim=5000, output_dim=16),
+	LSTM(64),
+	Dense(128, activation="relu"),
+	Dense(64, activation="relu"),
+	Dense(5, activation="softmax")
+])
+
+//Compile
+model.compile(optimizer=oprimizers.Adam(), loss="categorical_crossentropy", metrics=["accuracy"])
+
+//training
+hist = model.fit(padded_train, y_train, epochs=30, validation_data=(padded_test, y_test), verbose=1, workers=4)

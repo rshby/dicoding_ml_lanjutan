@@ -1,44 +1,98 @@
-== Binarry Text Classification ==
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from keras.models import Sequential
+from keras.layers import Dense, Flatten, Embedding
+
+tokenizer = Tokenizer(num_words=15, oov_token="-")
+
+teks = ["Saya suka programming",
+	"Programming sangat menyenangkan!",
+	"Machine Learning berbeda dengan pemrograman konvensional"]
+
+tokenizer.fit_on_texts(teks)
+
+sequences = tokenizer.texts_to_sequences(teks)
+
+print(tokenizer.word_index)
+
+print(tokenizer.text_to_sequences(["Saya suka programming"]))
+print(tokenizer.texts_to_sequences(["Saya suka belajar programming sejak SMP"]))
+
+//padding
+sequence_samapanjang = pad_sequences(sequences)
+
+print(sequences_samapanjang)
+
+sequences_samapanjang = pad_sequences(sequences, padding="post", maxlen=5)
+
+sequences_samapanjang = pad_sequences(sequences, padding="post",maxlen=5,
+			truncating="post)
+
+//Embedding
+model = Sequential([
+	Embedding(jumlah_kata, dimensi_embedding, panjang input),
+	Flatten(),
+	Dense(24, activation="relu"),
+	Dense(1, activation="sigmoid")
+])
+
+//Model Compile
+model.compile(optimizer = optimizers.Adam(), 
+		loss = "categorical_crossentropy",
+		metrics = ["accuracy"])
+
+/Training
+model.fit(padded_latih, label_latih, epochs=num_epochs, validation_data=(padded_test, label_test))
+
+=============================
+
 import pandas as pd
-df = pd.read_csv('yelp_labelled.txt', names=['sentence', 'label'], sep='\t')
+import numpy as np
+import tensorflow as tf
+
+from sklearn.model_selection import train_test_split
+
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from keras.models import Sequential
+from keras.layers import Flatten, Dense, Embbeding, GlobalAveragePooling1D
+
+df = pd.read_csv("yelp_labelled.txt", names=["sentence", "label"], sep="\t")
 
 df.tail()
 
-from sklearn.model_selection import train_test_split
-kalimat = df['sentence'].values
-y = df['label'].values
-kalimat_latih, kalimat_test, y_latih, y_test = train_test_split(kalimat, y, test_size=0.2)
+//dataset splitting
+X = df["sentence"].values
+y = df["label"].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+X_train.shape, X_test.shape, y_train.shape, y_test.shape
 
-//Tokenisasi
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
- 
-tokenizer = Tokenizer(num_words=250, oov_token='x')
-tokenizer.fit_on_texts(kalimat_latih) 
-tokenizer.fit_on_texts(kalimat_test)
+//tokenisasi
+tokenizer = Tokenizer(num_words=250, oov_token="x")
 
-//Sequences 
-sekuens_latih = tokenizer.texts_to_sequences(kalimat_latih)
-sekuens_test = tokenizer.texts_to_sequences(kalimat_test)
+tokenizer.fit_on_texts(X_train)
+tokenizer.fit_on_texts(X_test)
 
-//Padding
-padded_latih = pad_sequences(sekuens_latih) 
-padded_test = pad_sequences(sekuens_test)
+//proses sequence
+sequence_train = tokenizer.texts_to_sequence(X_train)
+sequence_test = tokenizer.texts_to_sequence(X_test)
+
+//padding
+padded_train = pad_sequences(sequence_train)
+padded_test = pad_sequences(sequences_test)
 
 //Arsitektur Model
-import tensorflow as tf
-model = tf.keras.Sequential([
-    tf.keras.layers.Embedding(250, 16, input_length=20),
-    tf.keras.layers.GlobalAveragePooling1D(),
-    tf.keras.layers.Dense(24, activation='relu'),
-    tf.keras.layers.Dense(1, activation='sigmoid')
+model = Sequential([
+	Embedding(250, 16, input_length=20),
+	GlobalAveragePooling1D(),
+	Dense(24, activation="relu"),
+	Dense(1, activation="sigmoid")
 ])
 
-//Compile
-model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+//model compile
+model.compile(optimizer=optimizers.Adam(), loss="binary_crossentropy", metrics=["accuracy"])
 
-//Training
-num_epochs = 30
-history = model.fit(padded_latih, y_latih, epochs=num_epochs, 
-                    validation_data=(padded_test, y_test), verbose=2)
+//training
+hist = model.fit(padded_train, y_train, epochs=30, validation_data=(padded_test, y_test), verbose=2)
+
 
