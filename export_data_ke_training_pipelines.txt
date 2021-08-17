@@ -1,0 +1,87 @@
+import pandas as pd
+import numpy as np
+
+import tensorflow as tf
+
+from tensorflow import feature_column
+from tensorflow.keras import layers
+from sklearn.model_selection import train_test_split
+
+//import datasets
+url='https://raw.githubusercontent.com/natashayulian/diamond_dataset/master/diamonds.csv'
+df = pd.read_csv(url)
+
+//dataset splittin
+train, test = train_test_split(df, test_size=0.2)
+train, val = train_test_split(train, test_size=0.2)
+print(len(train), "train examples")
+print(len(val), "validation examples")
+print(len(test), "test examples")
+
+//bungkus DataFrame dengan tf.data
+def df_to_dataset(dataframe, shuffle=True, batch_size=32):
+  dataframe = df.copy()
+  labels = dataframe.pop("targets")
+  ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+  if shuffle:
+    ds = ds.shuffle(buffer_size=len(dataframe))
+  ds = ds.batch(batch_size)
+  return ds
+
+batch_size=10 --> untuk simulasi saja
+train_ds = df_to_dataset(train, batch_size=batch_size)
+val_ds = df_to_dataset(val, shuffle=False, batch_size=batch_size)
+test_ds = df_to_dataset(test, shuffle=False, batch_size=batch_size)
+
+//Feature column
+//numeric
+carat = feature_column.numeric_column("carat")
+demo(carat)
+
+//bucketized column
+carat = feature_column.numeric_column("carat")
+carat_buckets = feature_column.bucketized_column(carat, boundaries=[1, 2])
+demo(carat_buckets)
+
+//categorical column
+color_type = feature_column.categorical_column_with_vocabulary_list("color", ["E", "I", "J", "D", "H", "G", "F"])
+
+color_type_one_hot = feature_column.indicator_column(color_type)
+demo(color_type_one_hot)
+
+//embedding column
+clarity = feature_column.categorical_column_with_vocabulary_list("clarity", df["clarity"].unique())
+clarity_embedding = feature_column.embedding_column(clarity, dimension=6)
+demo(clarity_embedding)
+
+//hashed feature column
+clarity_hashed = feature_column.categorical_column_with_hash_bucket("calrity", hash_bucket_size=5)
+demo(fetaure_column.indicator_column(clarity_hashed))
+
+//crossed feature column
+crossed_feature = feature_column.crossed_column([carat_bucket, color_type], hash_bucket_size=10)
+demo(feature_column.indicator_column(crossed_feature))
+
+//feature layer sebagai input ke model
+feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
+batch_size = 32
+train_ds = df_to_dataset(train, batch_size=batch_size)
+val_ds = df_to_dataset(val, shuffle=False, batch_size=batch_size)
+test_ds = df_to_dataset(test, shuffle=False, batch_size=batch_size)
+
+//arsitektur model
+model = tf.keras.Sequential([
+        feature_layer,
+        layers.Dense(128, activation="relu"),
+        layers.Dense(128, activation="relu"),
+        layers.Dropout(0.1),
+        layers.Dense(1)
+])
+
+//compile model
+model.compile(optimizers=oprimizers.Adam(),
+              loss=losses.BinaryCrossentropy(from_logits=True),
+              metrics=["accuracy"])
+
+//training
+model.fit(train_ds, validation_data=val_ds, epochs=10)
